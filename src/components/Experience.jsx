@@ -1,4 +1,4 @@
-import { ContactShadows, Environment, Text } from "@react-three/drei";
+import { ContactShadows, Environment, Text, Select } from "@react-three/drei";
 import {
   CuboidCollider,
   CylinderCollider,
@@ -9,11 +9,15 @@ import { CharacterController } from "./CharacterController";
 import { KanaSpots } from "./KanaSpots";
 import { Kicker } from "./Kicker";
 import { Stage } from "./Stage";
+import { useState } from "react";
+
 export const Experience = () => {
   const { currentKana, lastWrongKana } = useGameStore((state) => ({
     currentKana: state.currentKana,
     lastWrongKana: state.lastWrongKana,
   }));
+
+  const [selected, setSelected] = useState([]);
 
   return (
     <>
@@ -28,7 +32,7 @@ export const Experience = () => {
 
       {/* BACKGROUND */}
 
-      <Text
+      {/* <Text
         position={[0, -0.92, 0]}
         fontSize={1.84}
         rotation-x={-Math.PI / 2}
@@ -36,9 +40,9 @@ export const Experience = () => {
       >
         {currentKana ? currentKana.name.toUpperCase() : "Kana Game"}
         <meshStandardMaterial color={"white"} opacity={0.6} transparent />
-      </Text>
+      </Text> */}
 
-      {lastWrongKana && (
+      {/* {lastWrongKana && (
         <Text
           position={[0, -0.92, 1.2]}
           fontSize={1}
@@ -48,10 +52,10 @@ export const Experience = () => {
           {lastWrongKana.name.toUpperCase()}
           <meshStandardMaterial color={"red"} opacity={0.6} transparent />
         </Text>
-      )}
+      )} */}
 
       <group position-y={-1}>
-        <Kicker />
+        {/* <Kicker /> */}
         {/* FLOOR */}
         <RigidBody colliders={false} type="fixed" name="void">
           <mesh position={[0, -0.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -81,7 +85,9 @@ export const Experience = () => {
         </RigidBody>
 
         {/* CHARACTER */}
-        <CharacterController />
+        <Select box multiple onChange={setSelected}>
+          <CharacterController />
+        </Select>
 
         {/* KANA */}
         <KanaSpots />

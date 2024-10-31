@@ -1,4 +1,4 @@
-import { useKeyboardControls } from "@react-three/drei";
+import { useKeyboardControls, useSelect, Edges } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { useEffect, useRef } from "react";
@@ -19,17 +19,18 @@ export const CharacterController = () => {
       character: state.characterState,
       setCharacterState: state.setCharacterState,
       gameState: state.gameState,
-    })
+    }),
   );
   const jumpPressed = useKeyboardControls((state) => state[Controls.jump]);
   const leftPressed = useKeyboardControls((state) => state[Controls.left]);
   const rightPressed = useKeyboardControls((state) => state[Controls.right]);
   const backPressed = useKeyboardControls((state) => state[Controls.back]);
   const forwardPressed = useKeyboardControls(
-    (state) => state[Controls.forward]
+    (state) => state[Controls.forward],
   );
   const rigidbody = useRef();
   const isOnFloor = useRef(true);
+  const selected = useSelect();
 
   useFrame((state, delta) => {
     const impulse = { x: 0, y: 0, z: 0 };
@@ -76,20 +77,20 @@ export const CharacterController = () => {
 
     // CAMERA FOLLOW
     const characterWorldPosition = character.current.getWorldPosition(
-      new THREE.Vector3()
+      new THREE.Vector3(),
     );
 
     const targetCameraPosition = new THREE.Vector3(
-      characterWorldPosition.x,
+      characterWorldPosition.x + 0,
       0,
-      characterWorldPosition.z + 14
+      characterWorldPosition.z + 6,
     );
 
     if (gameState === gameStates.GAME) {
-      targetCameraPosition.y = 6;
+      targetCameraPosition.y = 14;
     }
     if (gameState !== gameStates.GAME) {
-      targetCameraPosition.y = 0;
+      targetCameraPosition.y = 20;
     }
 
     state.camera.position.lerp(targetCameraPosition, delta * 2);
@@ -97,7 +98,7 @@ export const CharacterController = () => {
     const targetLookAt = new THREE.Vector3(
       characterWorldPosition.x,
       0,
-      characterWorldPosition.z
+      characterWorldPosition.z + 0,
     );
 
     const direction = new THREE.Vector3();
@@ -123,13 +124,19 @@ export const CharacterController = () => {
 
   useEffect(
     () => useGameStore.subscribe((state) => state.currentStage, resetPosition),
-    []
+    [],
   );
 
   useEffect(
     () => useGameStore.subscribe((state) => state.wrongAnswers, resetPosition),
-    []
+    [],
   );
+
+  useEffect(() => {
+    console.log({ selected });
+  }, [selected]);
+
+  const isSelected = selected.length > 0;
 
   return (
     <group>
@@ -153,6 +160,14 @@ export const CharacterController = () => {
         <CapsuleCollider args={[0.8, 0.4]} position={[0, 1.2, 0]} />
         <group ref={character}>
           <Character />
+          <Edges
+            visible={isSelected}
+            scale={1.1}
+            renderOrder={1000}
+            geometry={new THREE.BoxGeometry()}
+          >
+            <meshBasicMaterial transparent color="#333" depthTest={false} />
+          </Edges>
         </group>
       </RigidBody>
     </group>

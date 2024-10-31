@@ -3,6 +3,7 @@ import {
   Loader,
   useFont,
   useProgress,
+  OrbitControls,
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
@@ -29,7 +30,7 @@ function App() {
       { name: Controls.right, keys: ["ArrowRight", "KeyD"] },
       { name: Controls.jump, keys: ["Space"] },
     ],
-    []
+    [],
   );
 
   const { progress } = useProgress();
@@ -42,6 +43,12 @@ function App() {
           <Physics>
             <Experience />
           </Physics>
+          {/* <OrbitControls
+            makeDefault
+            rotateSpeed={2}
+            minPolarAngle={0}
+            maxPolarAngle={Math.PI / 2.5}
+          /> */}
         </Suspense>
       </Canvas>
       <Loader />

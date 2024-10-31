@@ -4,12 +4,13 @@ import {
   CylinderCollider,
   RigidBody,
 } from "@react-three/rapier";
-import { useGameStore } from "../store";
+import { useGameStore, useSelectStore } from "../store";
 import { CharacterController } from "./CharacterController";
 import { KanaSpots } from "./KanaSpots";
 import { Kicker } from "./Kicker";
 import { Stage } from "./Stage";
 import { useState } from "react";
+import { useEffect } from "react";
 
 export const Experience = () => {
   const { currentKana, lastWrongKana } = useGameStore((state) => ({
@@ -17,7 +18,10 @@ export const Experience = () => {
     lastWrongKana: state.lastWrongKana,
   }));
 
-  const [selected, setSelected] = useState([]);
+  const { setSelection, addToMoveQueue } = useSelectStore((state) => ({
+    setSelection: state.setSelection,
+    addToMoveQueue: state.addToMoveQueue,
+  }));
 
   return (
     <>
@@ -74,23 +78,38 @@ export const Experience = () => {
           color={"#aa9acd"}
         />
         {/* STAGE */}
-        <Stage position-y={-0.92} />
-        <RigidBody
-          colliders={false}
-          type="fixed"
-          position-y={-0.5}
-          friction={2}
+        <Select
+          box
+          multiple
+          onChange={(x) => {
+            console.log(x);
+            setSelection(x.filter((s) => s.userData?.type == "character"));
+          }}
         >
-          <CylinderCollider args={[1 / 2, 5]} />
-        </RigidBody>
+          <Stage
+            position-y={-0.92}
+            onContextMenu={(point) => {
+              point.nativeEvent.preventDefault();
+              console.log({ point });
+              addToMoveQueue(point);
+            }}
+          />
+          <RigidBody
+            colliders={false}
+            type="fixed"
+            position-y={-0.5}
+            friction={2}
+          >
+            <CylinderCollider args={[1 / 2, 5]} />
+          </RigidBody>
 
-        {/* CHARACTER */}
-        <Select box multiple onChange={setSelected}>
-          <CharacterController />
+          {/* CHARACTER */}
+
+          <CharacterController id={1} />
+
+          {/* KANA */}
+          {/* <KanaSpots /> */}
         </Select>
-
-        {/* KANA */}
-        <KanaSpots />
       </group>
     </>
   );

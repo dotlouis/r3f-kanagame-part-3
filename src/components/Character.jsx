@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import React, { useEffect, useRef } from "react";
 import { useGameStore } from "../store";
 
-export default function Character(props) {
+export default function Character({ id, ...props }) {
   const group = useRef();
   const { nodes, materials, animations } = useGLTF("./models/male/model.gltf");
   const { actions } = useAnimations(animations, group);
@@ -28,6 +28,10 @@ export default function Character(props) {
           <primitive object={nodes.RightFootCtrl} />
           <primitive object={nodes.HipsCtrl} />
           <skinnedMesh
+            userData={{
+              type: "character",
+              id,
+            }}
             name="characterMedium"
             geometry={nodes.characterMedium.geometry}
             material={materials["skin.001"]}

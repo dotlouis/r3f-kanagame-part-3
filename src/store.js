@@ -38,6 +38,19 @@ export const generateGameLevel = ({ nbStages }) => {
   return level;
 };
 
+export const useSelectStore = create(
+  subscribeWithSelector((set, get) => ({
+    selection: [],
+    setSelection: (selection) =>
+      set({
+        selection,
+      }),
+    moveQueue: [],
+    addToMoveQueue: (mov) => set({ moveQueue: [...get().moveQueue, mov] }),
+    popMoveQueue: (mov) => set({ moveQueue: get().moveQueue.slice(0, -1) }),
+  })),
+);
+
 export const useGameStore = create(
   subscribeWithSelector((set, get) => ({
     level: null,
@@ -76,7 +89,7 @@ export const useGameStore = create(
         }
         const currentStage = state.currentStage + 1;
         const currentKana = state.level[currentStage].find(
-          (kana) => kana.correct
+          (kana) => kana.correct,
         );
         playAudio("good");
         playAudio(`correct${currentStage % 3}`, () => {
@@ -111,5 +124,5 @@ export const useGameStore = create(
       set({
         characterState,
       }),
-  }))
+  })),
 );

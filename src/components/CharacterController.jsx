@@ -1,9 +1,9 @@
-import { useKeyboardControls, useSelect, Edges } from "@react-three/drei";
+import { useKeyboardControls, Edges } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { useEffect, useRef } from "react";
 import { Controls } from "../App";
-import { gameStates, playAudio, useGameStore } from "../store";
+import { gameStates, playAudio, useGameStore, useSelectStore } from "../store";
 import Character from "./Character";
 
 import * as THREE from "three";
@@ -13,7 +13,7 @@ const MOVEMENT_SPEED = 0.1;
 const MAX_VEL = 3;
 const RUN_VEL = 1.5;
 
-export const CharacterController = () => {
+export const CharacterController = ({ id }) => {
   const { characterState, setCharacterState, gameState } = useGameStore(
     (state) => ({
       character: state.characterState,
@@ -21,42 +21,41 @@ export const CharacterController = () => {
       gameState: state.gameState,
     }),
   );
-  const jumpPressed = useKeyboardControls((state) => state[Controls.jump]);
-  const leftPressed = useKeyboardControls((state) => state[Controls.left]);
-  const rightPressed = useKeyboardControls((state) => state[Controls.right]);
-  const backPressed = useKeyboardControls((state) => state[Controls.back]);
-  const forwardPressed = useKeyboardControls(
-    (state) => state[Controls.forward],
-  );
+  // const jumpPressed = useKeyboardControls((state) => state[Controls.jump]);
+  // const leftPressed = useKeyboardControls((state) => state[Controls.left]);
+  // const rightPressed = useKeyboardControls((state) => state[Controls.right]);
+  // const backPressed = useKeyboardControls((state) => state[Controls.back]);
+  // const forwardPressed = useKeyboardControls(
+  //   (state) => state[Controls.forward],
+  // );
   const rigidbody = useRef();
   const isOnFloor = useRef(true);
-  const selected = useSelect();
 
   useFrame((state, delta) => {
     const impulse = { x: 0, y: 0, z: 0 };
-    if (jumpPressed && isOnFloor.current) {
-      impulse.y += JUMP_FORCE;
-      isOnFloor.current = false;
-    }
+    // if (jumpPressed && isOnFloor.current) {
+    //   impulse.y += JUMP_FORCE;
+    //   isOnFloor.current = false;
+    // }
 
     const linvel = rigidbody.current.linvel();
     let changeRotation = false;
-    if (rightPressed && linvel.x < MAX_VEL) {
-      impulse.x += MOVEMENT_SPEED;
-      changeRotation = true;
-    }
-    if (leftPressed && linvel.x > -MAX_VEL) {
-      impulse.x -= MOVEMENT_SPEED;
-      changeRotation = true;
-    }
-    if (backPressed && linvel.z < MAX_VEL) {
-      impulse.z += MOVEMENT_SPEED;
-      changeRotation = true;
-    }
-    if (forwardPressed && linvel.z > -MAX_VEL) {
-      impulse.z -= MOVEMENT_SPEED;
-      changeRotation = true;
-    }
+    // if (rightPressed && linvel.x < MAX_VEL) {
+    //   impulse.x += MOVEMENT_SPEED;
+    //   changeRotation = true;
+    // }
+    // if (leftPressed && linvel.x > -MAX_VEL) {
+    //   impulse.x -= MOVEMENT_SPEED;
+    //   changeRotation = true;
+    // }
+    // if (backPressed && linvel.z < MAX_VEL) {
+    //   impulse.z += MOVEMENT_SPEED;
+    //   changeRotation = true;
+    // }
+    // if (forwardPressed && linvel.z > -MAX_VEL) {
+    //   impulse.z -= MOVEMENT_SPEED;
+    //   changeRotation = true;
+    // }
 
     rigidbody.current.applyImpulse(impulse, true);
 
@@ -132,11 +131,31 @@ export const CharacterController = () => {
     [],
   );
 
-  useEffect(() => {
-    console.log({ selected });
-  }, [selected]);
+  const { selection, popMoveQueue } = useSelectStore((state) => ({
+    selection: state.selection,
+    popMoveQueue: state.popMoveQueue,
+  }));
 
-  const isSelected = selected.length > 0;
+  useEffect(
+    () =>
+      useSelectStore.subscribe(
+        (state) => state.moveQueue,
+        (state) => {
+          console.log({ moveQueue: state });
+          if (state.length > 0) {
+            rigidbody.current.setTranslation(vec3(state[0].point));
+            popMoveQueue();
+          }
+        },
+      ),
+    [],
+  );
+
+  useEffect(() => {
+    console.log({ selection });
+  }, [selection]);
+
+  const isSelected = !!selection.find((x) => x?.userData?.id == id);
 
   return (
     <group>
@@ -159,7 +178,7 @@ export const CharacterController = () => {
       >
         <CapsuleCollider args={[0.8, 0.4]} position={[0, 1.2, 0]} />
         <group ref={character}>
-          <Character />
+          <Character id={id} />
           <Edges
             visible={isSelected}
             scale={1.1}
